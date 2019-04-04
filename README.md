@@ -15,6 +15,7 @@ Today, the script assumes a few things.  Some or all of these assumptions may be
 5. The shares/exports exist on the NAS array and they are mountable by Rubrik.
 
 Syntax:
+<pre>
 Usage: rbk_nas_bulk_add.py -i file [-hvDC] [-d 'delim'] [-c user:passwd] [-f fileset] [-s sla] rubrik
 -h | --help : Prints this message
 -v | --verbose : Verbose ouput
@@ -25,7 +26,7 @@ Usage: rbk_nas_bulk_add.py -i file [-hvDC] [-d 'delim'] [-c user:passwd] [-f fil
 -f | --fileset= : Assign each share to this fileset
 -s | --sla= : Assign an SLA to each share in this fileset.  Must be used with -f
 rubrik : The hostname or IP address of the Rubrik
-
+</pre>
 The input file:
 At this time, the input file has 2 columns per row.  The first column is the name of the NAS host as it's defined in Rubrik and the 2nd is the name of the share or the path of the export.  The script assumes any share name that starts with / is an NFS path.  Reach out if you have SMB shares that start with / (although I've never seen that and I'm not sure it's legal).  By default the script assumes a : as the delimiter of the 2 fields, but that can be over-ridden with the -d flag (e.g. -d ',' for a csv)
 
