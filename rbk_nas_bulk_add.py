@@ -87,7 +87,7 @@ if __name__ == "__main__":
         sys.stderr.write("ERROR: A file must be specified. (use the -i flag)\n")
         exit (1)
     if user == "":
-        raw_input("User: ")
+        user = raw_input("User: ")
     if password == "":
         password = getpass.getpass("Password: ")
     with open(file) as fp:
