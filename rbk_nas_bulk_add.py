@@ -11,7 +11,7 @@ def usage():
     sys.stderr.write ("Usage: rbk_nas_bulk_add.py -i file [-hvDC] [-d 'delim'] [-c user:passwd] [-f fileset] [-s sla] rubrik\n")
     sys.stderr.write("-h | --help : Prints this message\n")
     sys.stderr.write("-i | --input= : Specifies the input file for hosts and shares\n")
-    sys.stderr.write("-v | --verbose : Verbose ouput\n")
+    sys.stderr.write("-v | --verbose : Verbose output\n")
     sys.stderr.write("-D | --direct_archive : Use Direct Archive\n")
     sys.stderr.write("-C | --cleanup : Delete shares in the list instead of add\n")
     sys.stderr.write("-d | --delim= : Set the delimiter in the input file. ':' is the default\n")

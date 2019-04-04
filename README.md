@@ -19,7 +19,7 @@ Syntax:
 Usage: rbk_nas_bulk_add.py -i file [-hvDC] [-d 'delim'] [-c user:passwd] [-f fileset] [-s sla] rubrik
 -h | --help : Prints this message
 -i | --input= : Specifies the input file for hosts and shares
--v | --verbose : Verbose ouput
+-v | --verbose : Verbose output
 -D | --direct_archive : Use Direct Archive
 -C | --cleanup : Delete shares in the list instead of add
 -d | --delim= : Set the delimiter in the input file. ':' is the default
