@@ -85,11 +85,13 @@ if __name__ == "__main__":
         usage()
     if file == "":
         sys.stderr.write("ERROR: A file must be specified. (use the -i flag)\n")
-        exit (1)
+        exit(1)
+# Get Credentials if not on CLI
     if user == "":
         user = raw_input("User: ")
     if password == "":
         password = getpass.getpass("Password: ")
+# Read the input file
     with open(file) as fp:
         line = fp.readline()
         while line:
@@ -104,6 +106,7 @@ if __name__ == "__main__":
         exit(0)
     version = rubrik.cluster_version().split('.')
     version_maj = int(version[0])
+# Get the Fileset Template ID
     if fileset != "":
         endpoint = "/fileset_template?name=" + fileset
         rubrik_fs = rubrik.get('v1', endpoint, timeout=time_out)
@@ -114,15 +117,17 @@ if __name__ == "__main__":
         if fs_id == "":
             sys.stderr.write("Can't find fileset: " + fileset + "\n")
             exit(2)
-    if sla_domain != "":
-        sla_data = get_sla_data(rubrik, version_maj, time_out)
-        for sld in sla_data['data']:
-            if sld['name'] == sla_domain:
-                sla_id = sld['id']
-                break
-        if sla_id == "":
-            sys.stderr.write("Can't find SLA: " + sla_domain + "\n")
-            exit (3)
+# Get SLA Domain ID (only bother if fileset is being used)
+        if sla_domain != "":
+            sla_data = get_sla_data(rubrik, version_maj, time_out)
+            for sld in sla_data['data']:
+                if sld['name'] == sla_domain:
+                    sla_id = sld['id']
+                    break
+            if sla_id == "":
+                sys.stderr.write("Can't find SLA: " + sla_domain + "\n")
+                exit (3)
+# Get list of existing shares
     rubrik_shares = rubrik.get('internal', '/host/share', timeout=time_out)
     for host_share in rubrik_shares['data']:
         host = host_share['hostname']
@@ -130,9 +135,12 @@ if __name__ == "__main__":
         share = (host, share_name)
         existing_shares.append(share)
     get_params = {"operating_system_type": "NONE", "primary_cluster_id": "local"}
+# Get List of host IDs defined on Rubrik
     rubrik_hosts = rubrik.get('v1', "/host", params=get_params, timeout=time_out)
     for host in rubrik_hosts['data']:
         host_id[host['name']] = host['id']
+# For each share in the file not already on Rubrik, add the share.
+# Add that share to the fileset and SLA if requested
     for sh in share_list:
         if not sh in existing_shares:
             vprint("Adding " + sh[0] + ":" + sh[1])
