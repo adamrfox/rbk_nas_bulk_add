@@ -138,7 +138,7 @@ if __name__ == "__main__":
 # Get List of host IDs defined on Rubrik
     rubrik_hosts = rubrik.get('v1', "/host", params=get_params, timeout=time_out)
     for host in rubrik_hosts['data']:
-        host_id[host['name']] = host['id']
+        host_id[host['hostname']] = host['id']
 # For each share in the file not already on Rubrik, add the share.
 # Add that share to the fileset and SLA if requested
     for sh in share_list:
