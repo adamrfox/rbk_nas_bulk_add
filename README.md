@@ -3,7 +3,10 @@ A Project to bulk add NAS shares to a Rubrik
 
 The idea behind this project is to build a set of scripts that can help add NAS shares to a Rubrik at scale until such time as the functionlaity is built in.  An advantage of Rubrik being an API-first archetecture is that automating tasks is a straight-forward process.
 
-At this time, the project has one script, rbk_nas_bulk_add.py.  It's a Python script that requires the 'rubrik_cdm' library so if you don't have that, install that first.  https://github.com/rubrikinc/rubrik-sdk-for-python.  It should install with a simple 'pip install rubrik_cdm'
+At this time, the project has two scripts, rbk_nas_bulk_add.py and nas_array_grab.py .  
+
+They are Python scripts that require libraries.  The rbk_nas_bulk_add script requires 'rubrik_cdm' library so if you don't have that, install that first.  https://github.com/rubrikinc/rubrik-sdk-for-python.  It should install with a simple 'pip install rubrik_cdm'
+The nas_array_grab script requires the Isilon and NetApp SDKs to operate.  The Isilon library ca be found here https://github.com/Isilon/isilon_sdk_python or you can install it via pip with 'pip install isi_sdk_8_0'.  The NetApp SDK is included in the 'NetApp' directory below.  Keep that directory with the script or if you want it elsewhere, modify the script to look for it in the place you want.
 
 Assumptions:
 Today, the script assumes a few things.  Some or all of these assumptions may be lifted on later releases:
@@ -24,7 +27,7 @@ Usage: rbk_nas_bulk_add.py -i file [-hvDC] [-d 'delim'] [-c user:passwd] [-f fil
 -C | --cleanup : Delete shares in the list instead of add
 -d | --delim= : Set the delimiter in the input file. ':' is the default
 -c | --creds= : Specify the Rubrik credentials instead of being prompted.  This is not secure
--f | --fileset= : Assign each share to this fileset
+-f | --fileset= : Assign each share to this fileset 
 -s | --sla= : Assign an SLA to each share in this fileset.  Must be used with -f
 rubrik : The hostname or IP address of the Rubrik
 </pre>
@@ -41,5 +44,7 @@ If the SLA used has an archive, the script will turn on Direct Archive on the fi
 
 Filesets and SLA Domains:
 If no fileset of SLA is defined, they will not be added by the script.  If an SLA domain is desired, a fileset must be provided as well.
+
+The p
 
 Feel free to reach out with any questions/comments
