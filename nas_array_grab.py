@@ -28,7 +28,6 @@ def ntap_invoke_err_check(out):
 
 def ntap_get_share_list(host, user, password, protocol, interface, do_svms):
     svm_list = []
-    svm_share_list = []
     addr = ""
     hostname = {}
     host_lookup = ()
@@ -43,7 +42,6 @@ def ntap_get_share_list(host, user, password, protocol, interface, do_svms):
     ntap_set_err_check(out)
     result = netapp.invoke('vserver-get-iter')
     ntap_invoke_err_check(result)
-#    print result.sprintf()
     vs_info = result.child_get('attributes-list').children_get()
     for vs in vs_info:
         vs_type = vs.child_get_string("vserver-type")
@@ -67,13 +65,10 @@ def ntap_get_share_list(host, user, password, protocol, interface, do_svms):
                 try:
                     host_lookup = socket.gethostbyaddr(addr)
                     hostname[svm] = host_lookup[0]
-                    break
                 except socket.herror:
                     hostname[svm] = addr
-                    break
-        if hostname:
-            break
     for svm in svm_list:
+        svm_share_list = []
         if do_svms and svm not in do_svms:
             continue
         out = netapp.set_vserver(svm)
@@ -161,19 +156,19 @@ def isln_get_share_list(host, user, password, protcol, sc_zone_list, az_list):
                             found_alias = True
                     if not found_alias:
                         zone_share_list.append(p)
-        share_list[zone] = zone_share_list
-    print share_list
+        if protocol == "smb" or protocol == "cifs":
+            try:
+                results_exports = isilon_protocols.list_smb_shares(zone=zone)
+            except ApiException as e:
+                sys.stderr.write("Error calling smb_shares: " + e + "\n")
+                exit(1)
+            for x in results_exports.shares:
+                if x.path == "/ifs":
+                    continue
+                zone_share_list.append(x.name)
 
-
-
-
-
-
-
-    exit(0)
-
-
-
+        share_list[hostname[zone]] = zone_share_list
+    return (share_list)
 
 
 if __name__ == "__main__":
@@ -187,9 +182,10 @@ if __name__ == "__main__":
     interface_list = []
     sc_zone_list = []
     az_list = []
+    outfile = ""
 
 
-    optlist, args = getopt.getopt(sys.argv[1:], 'hvc:s:p:d:i:z:S:', ['help', 'verbose', 'creds=', 'svm=', 'protocol=', 'delim=', 'interface=', 'access_zones=', 'sc_zones='])
+    optlist, args = getopt.getopt(sys.argv[1:], 'hvc:s:p:d:i:z:S:o:', ['help', 'verbose', 'creds=', 'svm=', 'protocol=', 'delim=', 'interface=', 'access_zones=', 'sc_zones=', 'output'])
     for opt, a in optlist:
         if opt in ('-h', "--help"):
             usage()
@@ -209,6 +205,8 @@ if __name__ == "__main__":
             az_list = a.split(',')
         if opt in ('-S', "--sc_zones"):
             sc_zone_list = a.split(',')
+        if opt in ('-o', "--output"):
+            outfile = a
 
     array = args[0]
     host = args[1]
@@ -220,5 +218,15 @@ if __name__ == "__main__":
         share_list = ntap_get_share_list (host, user, password, protocol, interface_list, do_svm_list)
     if array == "isln" or array == "isilon":
         share_list = isln_get_share_list(host, user, password, protocol, sc_zone_list, az_list)
-    print share_list
+    if outfile:
+        fp = open (outfile, "w")
+    for host in share_list.keys():
+        for share in share_list[host]:
+            line = host + delim + share
+            if outfile:
+                fp.write(line + "\n")
+            else:
+                print line
+    if outfile:
+        fp.close()
 
