@@ -4,6 +4,10 @@ import sys
 import getopt
 import getpass
 import socket
+import isi_sdk_8_0
+from isi_sdk_8_0.rest import ApiException
+import urllib3
+urllib3.disable_warnings()
 sys.path.append('./NetApp')
 from NaServer import *
 
@@ -94,6 +98,81 @@ def ntap_get_share_list(host, user, password, protocol, interface, do_svms):
         share_list[hostname[svm]] = svm_share_list
     return (share_list)
 
+def isln_get_share_list(host, user, password, protcol, sc_zone_list, az_list):
+    hostname = {}
+    aliases = {}
+
+    configuration = isi_sdk_8_0.Configuration()
+    configuration.host = "https://" + host + ":8080"
+    configuration.username = user
+    configuration.password = password
+    configuration.verify_ssl = False
+    isilon = isi_sdk_8_0.ApiClient(configuration)
+    if not az_list:
+        isilon_zones = isi_sdk_8_0.ZonesApi(isilon)
+        try:
+            result = isilon_zones.list_zones()
+        except ApiException as e:
+            sys.stderr.write("Error calling list_zones: " + e + "\n")
+            exit (1)
+        for z in result.zones:
+            az_list.append(z.name)
+    isilon_network = isi_sdk_8_0.NetworkApi(isilon)
+    try:
+         result_pools = isilon_network.get_network_pools()
+    except ApiException as e:
+        sys.stderr.write("Error calling network_pools: " + e + "\n")
+        exit(1)
+    if not sc_zone_list:
+        for p in result_pools.pools:
+            if p.access_zone in hostname.keys():
+                continue
+            if p.sc_dns_zone:
+                hostname[p.access_zone] = p.sc_dns_zone
+            else:
+                hostname[p.access_zone] = p.ranges[0].low
+    for zone in az_list:
+        alias_instance = ()
+        al_list = []
+        zone_share_list = []
+        isilon_protocols = isi_sdk_8_0.ProtocolsApi(isilon)
+        if protocol == "nfs":
+            try:
+                result_aliases = isilon_protocols.list_nfs_aliases(zone=zone)
+            except ApiException as e:
+                sys.stderr.write("Error calling nfs_aliases: " + e + "\n")
+                exit(1)
+            for alias in result_aliases.aliases:
+                alias_instance = (alias.name, alias.path)
+                al_list.append(alias_instance)
+            try:
+                results_exports = isilon_protocols.list_nfs_exports(zone=zone)
+            except ApiException as e:
+                sys.stderr.write("Error calling nfs_exports: " + e + "\n")
+                exit(1)
+            for x in results_exports.exports:
+                for p in x.paths:
+                    if p == "/ifs":
+                        continue
+                    found_alias = False
+                    for a in al_list:
+                        if p in a:
+                            zone_share_list.append(a[0])
+                            found_alias = True
+                    if not found_alias:
+                        zone_share_list.append(p)
+        share_list[zone] = zone_share_list
+    print share_list
+
+
+
+
+
+
+
+    exit(0)
+
+
 
 
 
@@ -106,9 +185,11 @@ if __name__ == "__main__":
     delim = ":"
     share_list = {}
     interface_list = []
+    sc_zone_list = []
+    az_list = []
 
 
-    optlist, args = getopt.getopt(sys.argv[1:], 'hvc:s:p:d:i:', ['help', 'verbose', 'creds=', 'svm=', 'protocol=', 'delim=', 'interface='])
+    optlist, args = getopt.getopt(sys.argv[1:], 'hvc:s:p:d:i:z:S:', ['help', 'verbose', 'creds=', 'svm=', 'protocol=', 'delim=', 'interface=', 'access_zones=', 'sc_zones='])
     for opt, a in optlist:
         if opt in ('-h', "--help"):
             usage()
@@ -116,7 +197,7 @@ if __name__ == "__main__":
             verbose = True
         if opt in ('-c', "--creds"):
             (user, password) = a.split(':')
-        if opt in ('-s', ":--svm"):
+        if opt in ('-s', "--svm"):
             do_svm_list = a.split(',')
         if opt in ('-p', "--protocol"):
             protocol = a
@@ -124,6 +205,10 @@ if __name__ == "__main__":
             delim = a
         if opt in ('-i', "--interface"):
             interface_list = a.split(',')
+        if opt in ('-z', "--access_zones"):
+            az_list = a.split(',')
+        if opt in ('-S', "--sc_zones"):
+            sc_zone_list = a.split(',')
 
     array = args[0]
     host = args[1]
@@ -133,5 +218,7 @@ if __name__ == "__main__":
         password = getpass.getpass("Password: ")
     if array == "ntap" or array == "netapp":
         share_list = ntap_get_share_list (host, user, password, protocol, interface_list, do_svm_list)
+    if array == "isln" or array == "isilon":
+        share_list = isln_get_share_list(host, user, password, protocol, sc_zone_list, az_list)
     print share_list
 
