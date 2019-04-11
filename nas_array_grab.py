@@ -12,7 +12,18 @@ sys.path.append('./NetApp')
 from NaServer import *
 
 def usage():
-    print "Usage info goes here"
+    sys.stderr.write("Usage: nas_array_grab.py -p protocol [-h] [-o outfile] [-c creds] [-s svm] [-d delim] [-i interface] [-s svm] [-z zone] [-S sc_zone] array hostname\n")
+    sys.stderr.write("\n-h | --help : Prints this message\n")
+    sys.stderr.write("-p | --protocol= : Specify the protocol nfs or smb|cifs.  This flag is required\n")
+    sys.stderr.write("-o | --output= : Sends data to the file specified.  By default, data goes to stdout\n")
+    sys.stderr.write("-c | --creds= : Specify user credentials in the format user:password.  This is not secure\n")
+    sys.stderr.write("-d | --delim= : Specify a delimiter for outout.  Default is ':'\n")
+    sys.stderr.write("-s | --swm= :  Don't auto-discover SVMs, only pull data from a comma-separated list of NetApp SVMs.  [NetApp Only]\n")
+    sys.stderr.write("-i | --interface= : Don't auto-discover interfaces, use the interfaces here comma-separated.  [NetApp Only]\n")
+    sys.stderr.write("-z | --access_zones= : Don't auto-discover access zones.  Only pulll from a comma-separated list. [Isilon Only]\n")
+    sys.stderr.write("-S | --sc_zones= : Don't auto-discover SmartConnect Zone names.  Only pull from a comma-separated list. [Isilon Only]\n")
+    sys.stderr.write("array : Specify the array type: isilon|isln or netapp|ntap\n")
+    sys.stderr.write("hostname : Specify the hostname of the array.  [Isilon: System Zone] [NetApp: Cluster Management\n")
     exit(0)
 
 def ntap_set_err_check(out):
@@ -185,7 +196,7 @@ if __name__ == "__main__":
     outfile = ""
 
 
-    optlist, args = getopt.getopt(sys.argv[1:], 'hvc:s:p:d:i:z:S:o:', ['help', 'verbose', 'creds=', 'svm=', 'protocol=', 'delim=', 'interface=', 'access_zones=', 'sc_zones=', 'output'])
+    optlist, args = getopt.getopt(sys.argv[1:], 'hc:s:p:d:i:z:S:o:', ['help', 'creds=', 'svm=', 'protocol=', 'delim=', 'interface=', 'access_zones=', 'sc_zones=', 'output'])
     for opt, a in optlist:
         if opt in ('-h', "--help"):
             usage()
