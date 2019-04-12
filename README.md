@@ -74,7 +74,7 @@ Usage: nas_array_grab.py -p protocol [-h] [-o outfile] [-c creds] [-s svm] [-d d
 -z | --access_zones= : Don't auto-discover access zones.  Only pulll from a comma-separated list. [Isilon Only]
 -S | --sc_zones= : Don't auto-discover SmartConnect Zone names.  Only pull from a comma-separated list. [Isilon Only]
 array : Specify the array type: isilon|isln or netapp|ntap
-hostname : Specify the hostname of the array.  [Isilon: System Zone] [NetApp: Cluster Management
+hostname : Specify the hostname of the array.  [Isilon: System Zone] [NetApp: Cluster Management]
 
 
 </pre>
