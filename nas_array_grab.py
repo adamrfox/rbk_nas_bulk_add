@@ -225,7 +225,7 @@ if __name__ == "__main__":
     array = args[0]
     host = args[1]
     if user == "":
-        raw_input("User: ")
+        user = raw_input("User: ")
     if password == "":
         password = getpass.getpass("Password: ")
     if array == "ntap" or array == "netapp":
