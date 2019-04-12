@@ -104,7 +104,7 @@ def ntap_get_share_list(host, user, password, protocol, interface, do_svms):
         share_list[hostname[svm]] = svm_share_list
     return (share_list)
 
-def isln_get_share_list(host, user, password, protcol, sc_zone_list, az_list):
+def isln_get_share_list(host, user, password, protocol, sc_zone_list, az_list):
     hostname = {}
     aliases = {}
 
@@ -129,14 +129,17 @@ def isln_get_share_list(host, user, password, protcol, sc_zone_list, az_list):
     except ApiException as e:
         sys.stderr.write("Error calling network_pools: " + e + "\n")
         exit(1)
-    if not sc_zone_list:
+    if sc_zone_list:
         for p in result_pools.pools:
-            if p.access_zone in hostname.keys():
-                continue
-            if p.sc_dns_zone:
+            if p.sc_dns_zone in sc_zone_list:
                 hostname[p.access_zone] = p.sc_dns_zone
-            else:
-                hostname[p.access_zone] = p.ranges[0].low
+    for p in result_pools.pools:
+        if p.access_zone in hostname.keys():
+            continue
+        if p.sc_dns_zone:
+            hostname[p.access_zone] = p.sc_dns_zone
+        else:
+            hostname[p.access_zone] = p.ranges[0].low
     for zone in az_list:
         alias_instance = ()
         al_list = []
