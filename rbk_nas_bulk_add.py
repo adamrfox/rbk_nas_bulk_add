@@ -4,11 +4,15 @@ import rubrik_cdm
 import sys
 import getopt
 import getpass
+import socket
+import netaddr
+import isi_sdk_8_0
+from isi_sdk_8_0.rest import ApiException
 import urllib3
 urllib3.disable_warnings()
 
 def usage():
-    sys.stderr.write ("Usage: rbk_nas_bulk_add.py -i file [-hvDC] [-d 'delim'] [-c user:passwd] [-f fileset] [-s sla] rubrik\n")
+    sys.stderr.write ("Usage: rbk_nas_bulk_add.py -i file [-hvDC] [-d 'delim'] [-c user:passwd] [-f fileset] [-s sla] [-e array]rubrik\n")
     sys.stderr.write("-h | --help : Prints this message\n")
     sys.stderr.write("-i | --input= : Specifies the input file for hosts and shares\n")
     sys.stderr.write("-v | --verbose : Verbose output\n")
@@ -18,6 +22,7 @@ def usage():
     sys.stderr.write("-c | --creds= : Specify the Rubrik credentials instead of being prompted.  This is not secure\n")
     sys.stderr.write("-f | --fileset= : Assign each share to this fileset\n")
     sys.stderr.write("-s | --sla= : Assign an SLA to each share in this fileset.  Must be used with -f\n")
+    sys.stderr.write("-e | --add_exports= : Add the Rubrik's IP to the Isilon Exports.  Supply a System Zone name/IP\n")
     sys.stderr.write("rubrik : The hostname or IP address of the Rubrik\n")
     exit (0)
 
@@ -41,9 +46,43 @@ def cleanup(rubrik, share_list, time_out):
             del_share = rubrik.delete('internal', str(endpoint), timeout=time_out)
     return()
 
+def build_new_rc_list(rc_list, addr_list):
+    for addr in addr_list:
+        if addr not in rc_list:
+            rc_list.append(addr)
+    new_root_clinets = {'root_clients': rc_list}
+    return (new_root_clinets)
+
+def get_creds_from_file(file):
+    with open(file) as fp:
+        data = fp.read()
+    fp.close()
+    data = data.decode('uu_codec')
+    data = data.decode('rot13')
+    lines = data.splitlines()
+    (user, password) = lines[0].split(':')
+    try:
+        (isln_user, isln_password) = lines[1].split(':')
+    except IndexError:
+        isln_user = ""
+        isln_password = ""
+    return (user, password, isln_user, isln_password)
+
+
+class Exports():
+    def __init__(self, zone, aliases, ex_id, root_clients):
+        self.zone = zone
+        self.aliases = aliases
+        self.id_list = ex_id
+        self.root_clients = root_clients
+
+
+
 if __name__ == "__main__":
     user = ""
     password = ""
+    isln_user = ""
+    isln_password = ""
     file = ""
     delim = ":"
     share_list = []
@@ -58,15 +97,21 @@ if __name__ == "__main__":
     direct_archive = False
     time_out = 60
     cleanup_flag = False
+    add_exports_host = ""
+    addr_list = []
+    exports = {}
 
-    optlist,args = getopt.getopt (sys.argv[1:], 'hi:c:d:f:s:vDC', ["--help", "input=", "--creds=", "--delim=", "--fileset=", "--sla=", "--verbose", "--direct_archive", "--cleanup"])
+    optlist,args = getopt.getopt (sys.argv[1:], 'hi:c:d:f:s:vDCI:e:', ["--help", "input=", "--creds=", "--delim=", "--fileset=", "--sla=", "--verbose", "--direct_archive", "--cleanup", "--isln_creds", "--add_exports"])
     for opt,a in optlist:
         if opt in ('-h', "--help"):
             usage()
         if opt in ('-i', "--input"):
             file = a
         if opt in ('-c', "--creds"):
-            (user, password) = a.split(':')
+            if ':' in a:
+                (user, password) = a.split(':')
+            else:
+                (user, password, isln_user, isln_password) = get_creds_from_file(a)
         if opt in ('-d', "--delim"):
             delim = a
         if opt in ('-f', "--fileset"):
@@ -79,6 +124,10 @@ if __name__ == "__main__":
             direct_archive = True
         if opt in ('-C', "--cleanup"):
             cleanup_flag = True
+        if opt in ('-I', "--isln_creds"):
+            (isln_user, isln_password) = a.aplit(':')
+        if opt in ('-e', "--add_exports"):
+            add_exports_host = a
 
     rubrik_cluster = args[0]
     if rubrik_cluster == "?":
@@ -91,6 +140,10 @@ if __name__ == "__main__":
         user = raw_input("User: ")
     if password == "":
         password = getpass.getpass("Password: ")
+    if add_exports_host != "" and isln_user == "":
+        isln_user = raw_input("Array User: ")
+    if add_exports_host != "" and isln_password == "":
+        isln_password = getpass.getpass("Array Password: ")
 # Read the input file
     with open(file) as fp:
         line = fp.readline()
@@ -106,6 +159,14 @@ if __name__ == "__main__":
         exit(0)
     version = rubrik.cluster_version().split('.')
     version_maj = int(version[0])
+# If we are going to add exports to NFS, grab the IP addresses on the Rubrik
+    if add_exports_host != "":
+        configuration = isi_sdk_8_0.Configuration()
+        endpoint = "/cluster/me/network_interface"
+        rubrik_net = rubrik.get('internal', endpoint, timeout=time_out)
+        for n in rubrik_net['data']:
+            for i in n['ipAddresses']:
+                addr_list.append(i)
 # Get the Fileset Template ID
     if fileset != "":
         endpoint = "/fileset_template?name=" + fileset
@@ -148,6 +209,62 @@ if __name__ == "__main__":
                 share_type = "NFS"
             else:
                 share_type = "SMB"
+# If selected, add Rubrik IPs to Array (Isilon)
+            if add_exports_host != "" and share_type == "NFS":
+                vprint("   Adding Rubrik IPs to Array")
+                if sh[0] not in exports.keys():
+                    zone = ""
+                    alias = ()
+                    ex_list = []
+                    export_list = {}
+                    ex_instance = []
+                    alias_list = []
+                    export_id = {}
+                    configuration.host = "https://" + add_exports_host + ":8080"
+                    configuration.username = isln_user
+                    configuration.password = isln_password
+                    configuration.verify_ssl = False
+                    isilon = isi_sdk_8_0.ApiClient(configuration)
+                    addr = socket.gethostbyname(sh[0])
+                    isilon_network = isi_sdk_8_0.NetworkApi(isilon)
+                    net_results = isilon_network.get_network_pools()
+                    for p in net_results.pools:
+                        for r in p.ranges:
+                            ip_range = list(netaddr.iter_iprange(r.low,r.high))
+                            if netaddr.IPAddress(addr) in ip_range:
+                                zone = p.access_zone
+                                break
+                    isilon_protocols = isi_sdk_8_0.ProtocolsApi(isilon)
+                    alias_results = isilon_protocols.list_nfs_aliases(zone=zone)
+                    for a in alias_results.aliases:
+                        alias = (a.name,a.path)
+                        alias_list.append(alias)
+                    exports_results = isilon_protocols.list_nfs_exports(zone=zone)
+                    for ex in exports_results.exports:
+                        ex_instance = (ex.paths[0],ex.root_clients)
+                        ex_list.append(ex_instance)
+                        export_id[ex.paths[0]] = ex.id
+                    exports[sh[0]] = Exports(zone, alias_list, export_list, ex_list)
+                path = sh[1]
+                for a in exports[sh[0]].aliases:
+                    if sh[1] in a:
+                        path = a[1]
+                        break
+                found = False
+                for rc in exports[sh[0]].root_clients:
+                    if path in rc:
+                        found = True
+                        rc_list = rc
+                        break
+                if not found:
+                    sys.stderr.write("Can't find " + sh[0] + ":" + path + "\n")
+                    exit(3)
+                rc_new = build_new_rc_list (rc_list[1], addr_list)
+                try:
+                    exports_results = isilon_protocols.update_nfs_export(rc_new, export_id[path], zone=zone)
+                except ApiException as e:
+                    sys.stderr.write("Exception calling update_nfs_export: " + e)
+                    exit(4)
             payload = {"hostId": host_id[sh[0]], "exportPoint": sh[1], "shareType": share_type}
             share_id = rubrik.post('internal', '/host/share', payload)['id']
             if fileset != "":
@@ -160,3 +277,11 @@ if __name__ == "__main__":
                     endpoint = "/sla_domain/" + str(sla_id) + "/assign"
                     payload = {"managedIds": [ new_fs_id ]}
                     sla_out = rubrik.post('internal', endpoint, payload, timeout=time_out)
+
+
+
+
+
+
+
+

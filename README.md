@@ -27,7 +27,7 @@ Usage: rbk_nas_bulk_add.py -i file [-hvDC] [-d 'delim'] [-c user:passwd] [-f fil
 -D | --direct_archive : Use Direct Archive
 -C | --cleanup : Delete shares in the list instead of add
 -d | --delim= : Set the delimiter in the input file. ':' is the default
--c | --creds= : Specify the Rubrik credentials instead of being prompted.  This is not secure
+-c | --creds= : Specify the Rubrik credentials instead of being prompted.  Use user:password or the filename of an obfuscated creds file.
 -f | --fileset= : Assign each share to this fileset 
 -s | --sla= : Assign an SLA to each share in this fileset.  Must be used with -f
 rubrik : The hostname or IP address of the Rubrik
@@ -67,7 +67,7 @@ Usage: nas_array_grab.py -p protocol [-h] [-o outfile] [-c creds] [-s svm] [-d d
 -h | --help : Prints this message
 -p | --protocol= : Specify the protocol nfs or smb|cifs.  This flag is required
 -o | --output= : Sends data to the file specified.  By default, data goes to stdout
--c | --creds= : Specify user credentials in the format user:password.  This is not secure
+-c | --creds= : Specify user credentials in the format user:password or a filename with the data obfuscated with creds_encode.py
 -d | --delim= : Specify a delimiter for outout.  Default is ':'
 -s | --swm= :  Don't auto-discover SVMs, only pull data from a comma-separated list of NetApp SVMs.  [NetApp Only]
 -i | --interface= : Don't auto-discover interfaces, use the interfaces here comma-separated.  [NetApp Only]

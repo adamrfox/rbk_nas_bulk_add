@@ -209,6 +209,16 @@ def isln_get_share_list(host, user, password, protocol, sc_zone_list, az_list):
         share_list[hostname[zone]] = zone_share_list
     return (share_list)
 
+def get_creds_from_file(file):
+    with open(file) as fp:
+        data = fp.read()
+    fp.close()
+    data = data.decode('uu_codec')
+    data = data.decode('rot13')
+    lines = data.splitlines()
+    (user, password) = lines[0].split(':')
+    return (user, password)
+
 
 if __name__ == "__main__":
     user = ""
@@ -232,7 +242,10 @@ if __name__ == "__main__":
         if opt in ('-v', "--verbose"):
             verbose = True
         if opt in ('-c', "--creds"):
-            (user, password) = a.split(':')
+            if ':' in a:
+                (user, password) = a.split(':')
+            else:
+                (user, password) = get_creds_from_file(a)
         if opt in ('-s', "--svm"):
             do_svm_list = a.split(',')
         if opt in ('-p', "--protocol"):
