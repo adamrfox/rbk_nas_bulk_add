@@ -20,7 +20,7 @@ Today, the script assumes a few things.  Some or all of these assumptions may be
 
 Syntax:
 <pre>
-Usage: rbk_nas_bulk_add.py -i file [-hvDC] [-d 'delim'] [-c user:passwd] [-f fileset] [-s sla] rubrik
+Usage: rbk_nas_bulk_add.py -i file [-hvDC] [-d 'delim'] [-c user:passwd] [-f fileset] [-s sla] [-e array] rubrik
 -h | --help : Prints this message
 -i | --input= : Specifies the input file for hosts and shares
 -v | --verbose : Verbose output
@@ -30,6 +30,7 @@ Usage: rbk_nas_bulk_add.py -i file [-hvDC] [-d 'delim'] [-c user:passwd] [-f fil
 -c | --creds= : Specify the Rubrik credentials instead of being prompted.  Use user:password or the filename of an obfuscated creds file.
 -f | --fileset= : Assign each share to this fileset 
 -s | --sla= : Assign an SLA to each share in this fileset.  Must be used with -f
+-e | --add_exports= : Adds the Rubrik IPs to the root client list of the NFS exports [Isilon Only]
 rubrik : The hostname or IP address of the Rubrik
 </pre>
 The input file:
