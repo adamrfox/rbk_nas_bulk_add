@@ -23,6 +23,7 @@ def usage():
     sys.stderr.write("-f | --fileset= : Assign each share to this fileset\n")
     sys.stderr.write("-s | --sla= : Assign an SLA to each share in this fileset.  Must be used with -f\n")
     sys.stderr.write("-e | --add_exports= : Add the Rubrik's IP to the Isilon Exports.  Supply a System Zone name/IP\n")
+    sys.stderr.write("-r | --run_as_root= : Add a user or group to the Isilon share with run_as_root.  Format is user|group:name.  Use with -e\n")
     sys.stderr.write("rubrik : The hostname or IP address of the Rubrik\n")
     exit (0)
 

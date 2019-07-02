@@ -32,6 +32,7 @@ Usage: rbk_nas_bulk_add.py -i file [-hvDC] [-d 'delim'] [-c user:passwd] [-f fil
 -f | --fileset= : Assign each share to this fileset 
 -s | --sla= : Assign an SLA to each share in this fileset.  Must be used with -f
 -e | --add_exports= : Adds the Rubrik IPs to the root client list of the NFS exports [Isilon Only]
+-r | --run_as_root= : Adds the user or group to the share ACL with run_as_root enabled format user|group:name.  Must be used with -e [Isilon Only]
 rubrik : The hostname or IP address of the Rubrik
 </pre>
 The input file:
