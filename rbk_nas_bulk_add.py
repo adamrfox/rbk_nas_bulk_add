@@ -100,8 +100,9 @@ if __name__ == "__main__":
     add_exports_host = ""
     addr_list = []
     exports = {}
+    run_as_root_user = ""
 
-    optlist,args = getopt.getopt (sys.argv[1:], 'hi:c:d:f:s:vDCI:e:', ["--help", "input=", "--creds=", "--delim=", "--fileset=", "--sla=", "--verbose", "--direct_archive", "--cleanup", "--isln_creds", "--add_exports"])
+    optlist,args = getopt.getopt (sys.argv[1:], 'hi:c:d:f:s:vDCI:e:r:', ["--help", "input=", "--creds=", "--delim=", "--fileset=", "--sla=", "--verbose", "--direct_archive", "--cleanup", "--isln_creds", "--add_exports", "--run_as_root="])
     for opt,a in optlist:
         if opt in ('-h', "--help"):
             usage()
@@ -128,6 +129,8 @@ if __name__ == "__main__":
             (isln_user, isln_password) = a.aplit(':')
         if opt in ('-e', "--add_exports"):
             add_exports_host = a
+        if opt in ('-r', "--run_as_root"):
+            run_as_root_user = a
 
     rubrik_cluster = args[0]
     if rubrik_cluster == "?":
@@ -265,7 +268,42 @@ if __name__ == "__main__":
                 except ApiException as e:
                     sys.stderr.write("Exception calling update_nfs_export: " + e)
                     exit(4)
+# If selected add the 'run as root' to the Isilon
+            if run_as_root_user != "" and share_type == "SMB":
+                vprint("   Adding run_as_root user to share")
+                zone = ""
+                configuration.host = "https://" + add_exports_host + ":8080"
+                configuration.username = isln_user
+                configuration.password = isln_password
+                configuration.verify_ssl = False
+                isilon = isi_sdk_8_0.ApiClient(configuration)
+                addr = socket.gethostbyname(sh[0])
+                isilon_network = isi_sdk_8_0.NetworkApi(isilon)
+                net_results = isilon_network.get_network_pools()
+                for p in net_results.pools:
+                    for r in p.ranges:
+                        ip_range = list(netaddr.iter_iprange(r.low, r.high))
+                        if netaddr.IPAddress(addr) in ip_range:
+                            zone = p.access_zone
+                            break
+                (rar_type, rar_user) = run_as_root_user.split(':')
+                isilon_protocols = isi_sdk_8_0.ProtocolsApi(isilon)
+                share_results = isilon_protocols.get_smb_share(sh[1], zone=zone)
+                add_rar = True
+                for sh_data in share_results.shares:
+                    for rar in sh_data.run_as_root:
+                        if rar.type == rar_type and rar.name == rar_user:
+                            add_rar = False
+                            break
+                if add_rar:
+                    new_rar_data = {'type': rar_type, 'name': rar_user}
+                    sh_data.run_as_root.append(new_rar_data)
+                    new_rar = {'run_as_root': sh_data.run_as_root}
+                    share_update = isilon_protocols.update_smb_share(new_rar, sh[1], zone=zone)
+                    fix_perms = {'permissions': sh_data.permissions}
+                    share_update = isilon_protocols.update_smb_share(fix_perms, sh[1], zone=zone)
             payload = {"hostId": host_id[sh[0]], "exportPoint": sh[1], "shareType": share_type}
+#            print payload
             share_id = rubrik.post('internal', '/host/share', payload)['id']
             if fileset != "":
                 vprint("  Adding share to fileset")
