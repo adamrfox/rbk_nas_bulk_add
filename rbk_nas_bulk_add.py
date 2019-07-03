@@ -271,7 +271,8 @@ if __name__ == "__main__":
                     exit(4)
 # If selected add the 'run as root' to the Isilon
             if run_as_root_user != "" and share_type == "SMB":
-                vprint("   Adding run_as_root user to share")
+                (rar_type, rar_user) = run_as_root_user.split(':')
+                vprint("   Adding run_as_root " + rar_type + " to share")
                 zone = ""
                 configuration.host = "https://" + add_exports_host + ":8080"
                 configuration.username = isln_user
@@ -287,7 +288,6 @@ if __name__ == "__main__":
                         if netaddr.IPAddress(addr) in ip_range:
                             zone = p.access_zone
                             break
-                (rar_type, rar_user) = run_as_root_user.split(':')
                 isilon_protocols = isi_sdk_8_0.ProtocolsApi(isilon)
                 share_results = isilon_protocols.get_smb_share(sh[1], zone=zone)
                 add_rar = True
