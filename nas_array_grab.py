@@ -138,7 +138,7 @@ def isln_get_share_list(host, user, password, protocol, sc_zone_list, az_list):
         try:
             result = isilon_zones.list_zones()
         except ApiException as e:
-            sys.stderr.write("Error calling list_zones: " + e + "\n")
+            sys.stderr.write("Error calling list_zones: " + str(e) + "\n")
             exit (1)
         for z in result.zones:
             az_list.append(z.name)
@@ -149,7 +149,7 @@ def isln_get_share_list(host, user, password, protocol, sc_zone_list, az_list):
     try:
          result_pools = isilon_network.get_network_pools()
     except ApiException as e:
-        sys.stderr.write("Error calling network_pools: " + e + "\n")
+        sys.stderr.write("Error calling network_pools: " + str(e) + "\n")
         exit(1)
     if sc_zone_list:
         for p in result_pools.pools:
@@ -174,7 +174,7 @@ def isln_get_share_list(host, user, password, protocol, sc_zone_list, az_list):
             try:
                 result_aliases = isilon_protocols.list_nfs_aliases(zone=zone)
             except ApiException as e:
-                sys.stderr.write("Error calling nfs_aliases: " + e + "\n")
+                sys.stderr.write("Error calling nfs_aliases: " + str(e) + "\n")
                 exit(1)
             for alias in result_aliases.aliases:
                 alias_instance = (alias.name, alias.path)
@@ -182,7 +182,7 @@ def isln_get_share_list(host, user, password, protocol, sc_zone_list, az_list):
             try:
                 results_exports = isilon_protocols.list_nfs_exports(zone=zone)
             except ApiException as e:
-                sys.stderr.write("Error calling nfs_exports: " + e + "\n")
+                sys.stderr.write("Error calling nfs_exports: " + str(e) + "\n")
                 exit(1)
             for x in results_exports.exports:
                 for p in x.paths:
@@ -199,7 +199,7 @@ def isln_get_share_list(host, user, password, protocol, sc_zone_list, az_list):
             try:
                 results_exports = isilon_protocols.list_smb_shares(zone=zone)
             except ApiException as e:
-                sys.stderr.write("Error calling smb_shares: " + e + "\n")
+                sys.stderr.write("Error calling smb_shares: " + str(e) + "\n")
                 exit(1)
             for x in results_exports.shares:
                 if x.path == "/ifs":                        # Exclude any /ifs root shares
