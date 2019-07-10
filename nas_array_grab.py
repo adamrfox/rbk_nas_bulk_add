@@ -232,10 +232,11 @@ if __name__ == "__main__":
     sc_zone_list = []
     az_list = []
     outfile = ""
+    DEBUG = False
 
 # Process arguments using getopt
 
-    optlist, args = getopt.getopt(sys.argv[1:], 'hc:s:p:d:i:z:S:o:', ['help', 'creds=', 'svm=', 'protocol=', 'delim=', 'interface=', 'access_zones=', 'sc_zones=', 'output'])
+    optlist, args = getopt.getopt(sys.argv[1:], 'hc:s:p:d:i:z:S:o:D', ['help', 'creds=', 'svm=', 'protocol=', 'delim=', 'interface=', 'access_zones=', 'sc_zones=', 'output', 'debug'])
     for opt, a in optlist:
         if opt in ('-h', "--help"):
             usage()
@@ -260,6 +261,8 @@ if __name__ == "__main__":
             sc_zone_list = a.split(',')
         if opt in ('-o', "--output"):
             outfile = a
+        if opt in ('-D', "--debug"):
+            DEBUG = True
 
     array = args[0]
     host = args[1]
@@ -270,6 +273,10 @@ if __name__ == "__main__":
         user = raw_input("User: ")
     if password == "":
         password = getpass.getpass("Password: ")
+
+    if DEBUG:
+        print "User: " + user
+        print "Password: " + password
 
 # Generate a list of shares based on the APIs for each array
 
