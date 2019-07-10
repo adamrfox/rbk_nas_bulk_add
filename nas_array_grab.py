@@ -263,6 +263,7 @@ if __name__ == "__main__":
             outfile = a
         if opt in ('-D', "--debug"):
             DEBUG = True
+            verbose = True
 
     array = args[0]
     host = args[1]
