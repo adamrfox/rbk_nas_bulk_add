@@ -267,7 +267,7 @@ if __name__ == "__main__":
                 try:
                     exports_results = isilon_protocols.update_nfs_export(rc_new, export_id[path], zone=zone)
                 except ApiException as e:
-                    sys.stderr.write("Exception calling update_nfs_export: " + e)
+                    sys.stderr.write("Exception calling update_nfs_export: " + str(e))
                     exit(4)
 # If selected add the 'run as root' to the Isilon
             if run_as_root_user != "" and share_type == "SMB":
