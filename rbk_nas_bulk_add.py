@@ -69,6 +69,11 @@ def get_creds_from_file(file):
         isln_password = ""
     return (user, password, isln_user, isln_password)
 
+def convert_domain_user(rar_user):
+    rf = rar_user.split('@')
+    rf2 = rf[1].split('.')
+    return (rf2[0] + "\\" + rf[0])
+
 
 class Exports():
     def __init__(self, zone, aliases, ex_id, root_clients):
@@ -293,8 +298,13 @@ if __name__ == "__main__":
                 add_rar = True
                 for sh_data in share_results.shares:
                     for rar in sh_data.run_as_root:
-                        if rar.type == rar_type and rar.name == rar_user:
+                        if '@' in rar_user:
+                            rar_user = convert_domain_user(rar_user)
+                        print 'RAR=' + str(rar)
+                        print "INST = " + rar_type + " // " + rar_user
+                        if rar.type == rar_type and rar.name.lower() == rar_user:
                             add_rar = False
+                            vprint("      'run as root' already added.  Skipping")
                             break
                 if add_rar:
                     new_rar_data = {'type': rar_type, 'name': rar_user}
@@ -305,7 +315,7 @@ if __name__ == "__main__":
                     share_update = isilon_protocols.update_smb_share(fix_perms, sh[1], zone=zone)
             payload = {"hostId": host_id[sh[0]], "exportPoint": sh[1], "shareType": share_type}
 #            print payload
-            share_id = rubrik.post('internal', '/host/share', payload)['id']
+            share_id = rubrik.post('internal', '/host/share', payload, timeout=time_out)['id']
             if fileset != "":
                 vprint("  Adding share to fileset")
                 payload = {"shareId": share_id, "templateId": fs_id, "isPassthrough": direct_archive}
