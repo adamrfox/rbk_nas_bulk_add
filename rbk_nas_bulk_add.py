@@ -107,6 +107,7 @@ if __name__ == "__main__":
     addr_list = []
     exports = {}
     run_as_root_user = ""
+    skipped_shares = []
 
     optlist,args = getopt.getopt (sys.argv[1:], 'hi:c:d:f:s:vDCI:e:r:', ["--help", "input=", "--creds=", "--delim=", "--fileset=", "--sla=", "--verbose", "--direct_archive", "--cleanup", "--isln_creds", "--add_exports", "--run_as_root="])
     for opt,a in optlist:
@@ -300,8 +301,6 @@ if __name__ == "__main__":
                     for rar in sh_data.run_as_root:
                         if '@' in rar_user:
                             rar_user = convert_domain_user(rar_user)
-                        print 'RAR=' + str(rar)
-                        print "INST = " + rar_type + " // " + rar_user
                         if rar.type == rar_type and rar.name.lower() == rar_user:
                             add_rar = False
                             vprint("      'run as root' already added.  Skipping")
@@ -315,7 +314,11 @@ if __name__ == "__main__":
                     share_update = isilon_protocols.update_smb_share(fix_perms, sh[1], zone=zone)
             payload = {"hostId": host_id[sh[0]], "exportPoint": sh[1], "shareType": share_type}
 #            print payload
-            share_id = rubrik.post('internal', '/host/share', payload, timeout=time_out)['id']
+            try:
+                share_id = rubrik.post('internal', '/host/share', payload, timeout=time_out)['id']
+            except rubrik_cdm.exceptions.APICallException as e:
+                sys.stderr.write("Share add failed: " + str(e))
+                skipped_shares.append(sh)
             if fileset != "":
                 vprint("  Adding share to fileset")
                 payload = {"shareId": share_id, "templateId": fs_id, "isPassthrough": direct_archive}
@@ -326,6 +329,10 @@ if __name__ == "__main__":
                     endpoint = "/sla_domain/" + str(sla_id) + "/assign"
                     payload = {"managedIds": [ new_fs_id ]}
                     sla_out = rubrik.post('internal', endpoint, payload, timeout=time_out)
+    if skipped_shares:
+        print "\nSkipped Shares:"
+        for skipped in skipped_shares:
+            print skipped
 
 
 
