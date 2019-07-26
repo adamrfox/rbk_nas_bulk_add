@@ -271,7 +271,7 @@ if __name__ == "__main__":
                     exit(3)
                 rc_new = build_new_rc_list (rc_list[1], addr_list)
                 try:
-                    exports_results = isilon_protocols.update_nfs_export(rc_new, export_id[path], zone=zone)
+                    exports_results = isilon_protocols.update_nfs_export(rc_new, export_id[path], force=True, zone=zone)
                 except ApiException as e:
                     sys.stderr.write("Exception calling update_nfs_export: " + str(e))
                     exit(4)
