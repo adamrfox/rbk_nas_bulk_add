@@ -177,6 +177,10 @@ if __name__ == "__main__":
         for n in rubrik_net['data']:
             for i in n['ipAddresses']:
                 addr_list.append(i)
+        rubrik_net = rubrik.get('internal', '/cluster/me/floating_ip', timeout=time_out)
+        for f in rubrik_net['data']:
+            if f['ip'] in addr_list:
+                addr_list.remove(f['ip'])
 # Get the Fileset Template ID
     if fileset != "":
         endpoint = "/fileset_template?name=" + fileset
