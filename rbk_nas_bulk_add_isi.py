@@ -12,7 +12,7 @@ import urllib3
 urllib3.disable_warnings()
 
 def usage():
-    sys.stderr.write ("Usage: rbk_nas_bulk_add.py -i file [-hvDC] [-d 'delim'] [-c user:passwd] [-f fileset] [-s sla] [-e array] rubrik\n")
+    sys.stderr.write ("Usage: rbk_nas_bulk_add_isi.py -i file [-hvDC] [-d 'delim'] [-c user:passwd] [-f fileset] [-s sla] [-e array] rubrik\n")
     sys.stderr.write("-h | --help : Prints this message\n")
     sys.stderr.write("-i | --input= : Specifies the input file for hosts and shares\n")
     sys.stderr.write("-v | --verbose : Verbose output\n")
