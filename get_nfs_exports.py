@@ -25,7 +25,7 @@ if __name__ == "__main__":
             lf = line.split()
             export_list.append(lf[0])
     if outfile:
-        fp = open(outfile, "w")
+        fp = open(outfile, "a")
     for x in export_list:
         if not outfile:
             print nfs_server + ":" + x
