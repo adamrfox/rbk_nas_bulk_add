@@ -10,6 +10,7 @@ import urllib3
 urllib3.disable_warnings()
 sys.path.append('./NetApp')
 from NaServer import *
+import ssl
 
 def usage():
     sys.stderr.write("Usage: nas_array_grab.py -p protocol [-h] [-o outfile] [-c creds] [-s svm] [-d delim] [-i interface] [-s svm] [-z zone] [-S sc_zone] array hostname\n")
@@ -45,6 +46,12 @@ def ntap_get_share_list(host, user, password, protocol, interface, do_svms):
 
 # Set up NetApp API session
 
+    try:
+        _create_unverified_https_context = ssl._create_unverified_context
+    except AttributeError:
+        pass
+    else:
+        ssl._create_default_https_context = _create_unverified_https_context
     netapp = NaServer(host, 1, 15)
     out = netapp.set_transport_type('HTTPS')
     ntap_set_err_check(out)
