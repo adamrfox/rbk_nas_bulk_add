@@ -290,6 +290,7 @@ if __name__ == "__main__":
 
 # Prompt for user and password if not provided via -c
 
+    print ("NOTE: This version is deprecated.  The array and generic versions are actively maintained. ")
     if user == "":
         user = raw_input("User: ")
     if password == "":
