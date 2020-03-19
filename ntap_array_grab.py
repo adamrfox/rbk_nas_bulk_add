@@ -190,7 +190,10 @@ if __name__ == "__main__":
 # Prompt for user and password if not provided via -c
 
     if user == "":
-        user = raw_input("User: ")
+        if sys.version[0] > 2:
+            user = input ("User: ")
+        else:
+            user = raw_input("User: ")
     if password == "":
         password = getpass.getpass("Password: ")
 
