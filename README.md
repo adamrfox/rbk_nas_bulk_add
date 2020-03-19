@@ -51,8 +51,12 @@ If no fileset of SLA is defined, they will not be added by the script.  If an SL
 
 ## nas_array_grab.py
 
+[NOTE]: The nas_array_grab.py script has been deprecated.  It can still be used but new work is being done on the smaller
+scripts.  The script ntap_array_grab.py is for NTAP, isln_array_grab.py is for Isilon, get_nfs_exports.py is for generic
+NFS servers (runs on UNIX/Linux), and get_smb_shares.py is for generic SMB shares (runs on Windows).  
 This script can work with rbk_nas_bulk_add by creating the input file needed by that script.  It is made to work with NetApp or Isilon arrays and uses the APIs on those platforms to pull the share data from them.  It can discover SVMs on NetApp and Access Zones on Isilon. 
 The idea is that you can discover all shares (NFS or SMB/CIFS) and then you can edit the file as you like, then use the rbk_nas_bulk_add script to add the shares to Rubrik.
+The syntax for ntap_array_grab and isln_array_grab are the same as the older nas_array_grab script.
 
 Assumptions:
 At this time, the script makes a few assumptions:
