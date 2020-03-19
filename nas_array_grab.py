@@ -52,7 +52,7 @@ def ntap_get_share_list(host, user, password, protocol, interface, do_svms):
         pass
     else:
         ssl._create_default_https_context = _create_unverified_https_context
-    netapp = NaServer(host, 1, 15)
+    netapp = NaServer(host, 1, 130)
     out = netapp.set_transport_type('HTTPS')
     ntap_set_err_check(out)
     out = netapp.set_style('LOGIN')
@@ -101,18 +101,31 @@ def ntap_get_share_list(host, user, password, protocol, interface, do_svms):
 
     for svm in svm_list:
         svm_share_list = []
+        junct_point = {}
         if do_svms and svm not in do_svms:
             continue
         out = netapp.set_vserver(svm)
         if protocol == "nfs":
-            result = netapp.invoke('nfs-exportfs-list-rules')
+            result = netapp.invoke('volume-get-iter')
             ntap_invoke_err_check(result)
-            exports = result.child_get('rules').children_get()
-            for ex in exports:
-                path = ex.child_get_string('pathname')
-                if path == "/" or path.startswith("/vol/"):     # Exclude root volumes
-                    continue
-                svm_share_list.append(path)
+            vol_attrs = result.child_get('attributes-list').children_get()
+            for v in vol_attrs:
+                vid_attrs = v.child_get('volume-id-attributes')
+                volume = vid_attrs.child_get_string('name')
+                junction = vid_attrs.child_get_string('junction-path')
+                junct_point[volume] = junction
+            result = netapp.invoke('qtree-list-iter')
+            ntap_invoke_err_check(result)
+            qt_attrs = result.child_get('attributes-list').children_get()
+            for qt in qt_attrs:
+                volume = qt.child_get_string('volume')
+                qtree = qt.child_get_string('qtree')
+                if qtree == "":
+                    vol_j = junct_point[volume]
+                else:
+                    vol_j = junct_point[volume] + "/" + qtree
+                if vol_j != "/":
+                    svm_share_list.append(vol_j)
         elif protocol == "cifs" or protocol == "smb":
             result = netapp.invoke('cifs-share-get-iter')
             ntap_invoke_err_check(result)
