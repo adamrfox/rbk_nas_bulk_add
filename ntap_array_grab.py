@@ -190,7 +190,7 @@ if __name__ == "__main__":
 # Prompt for user and password if not provided via -c
 
     if user == "":
-        if sys.version[0] > 2:
+        if int(sys.version[0]) > 2:
             user = input ("User: ")
         else:
             user = raw_input("User: ")
