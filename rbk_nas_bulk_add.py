@@ -1,11 +1,9 @@
 #!/usr/bin/python
-
+from __future__ import print_function
 import rubrik_cdm
 import sys
 import getopt
 import getpass
-import socket
-import netaddr
 import urllib3
 urllib3.disable_warnings()
 
@@ -25,7 +23,7 @@ def usage():
 
 def vprint (message):
     if verbose:
-        print message
+        print (message)
 
 def get_sla_data (rubrik, vers, time_out):
     if vers < 5:
@@ -194,7 +192,7 @@ if __name__ == "__main__":
             else:
                 share_type = "SMB"
             payload = {"hostId": host_id[sh[0]], "exportPoint": sh[1], "shareType": share_type}
-#            print payload
+#            print(payload)
             try:
                 share_id = rubrik.post('internal', '/host/share', payload, timeout=time_out)['id']
             except rubrik_cdm.exceptions.APICallException as e:
@@ -211,9 +209,9 @@ if __name__ == "__main__":
                     payload = {"managedIds": [ new_fs_id ]}
                     sla_out = rubrik.post('internal', endpoint, payload, timeout=time_out)
     if skipped_shares:
-        print "\nSkipped Shares:"
+        print("\nSkipped Shares:")
         for skipped in skipped_shares:
-            print skipped
+            print (skipped)
 
 
 
