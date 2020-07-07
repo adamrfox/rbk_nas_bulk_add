@@ -131,7 +131,10 @@ if __name__ == "__main__":
         exit(1)
 # Get Credentials if not on CLI
     if user == "":
-        user = raw_input("User: ")
+        if int(sys.version[0]) > 2:
+            user = input ("User: ")
+        else:
+            user = raw_input("User: ")
     if password == "":
         password = getpass.getpass("Password: ")
 # Read the input file

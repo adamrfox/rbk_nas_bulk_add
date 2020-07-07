@@ -209,8 +209,11 @@ if __name__ == "__main__":
 
     if outfile:
         fp = open (outfile, "w")
+    print ("SHARE_LIST: " + str(share_list))
     for host in share_list.keys():
         for share in share_list[host]:
+            if share is None:
+                continue
             line = host + delim + share
             if outfile:
                 fp.write(line + "\n")
