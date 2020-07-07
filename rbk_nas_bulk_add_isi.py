@@ -1,5 +1,5 @@
 #!/usr/bin/python
-
+from __future__ import print_function
 import rubrik_cdm
 import sys
 import getopt
@@ -29,7 +29,7 @@ def usage():
 
 def vprint (message):
     if verbose:
-        print message
+        print (message)
 
 def get_sla_data (rubrik, vers, time_out):
     if vers < 5:
@@ -147,7 +147,10 @@ if __name__ == "__main__":
         exit(1)
 # Get Credentials if not on CLI
     if user == "":
-        user = raw_input("User: ")
+        if int(sys.version[0] > 2):
+            user - input ("User: ")
+        else:
+            user = raw_input("User: ")
     if password == "":
         password = getpass.getpass("Password: ")
     if add_exports_host != "" and isln_user == "":
@@ -317,7 +320,7 @@ if __name__ == "__main__":
                     fix_perms = {'permissions': sh_data.permissions}
                     share_update = isilon_protocols.update_smb_share(fix_perms, sh[1], zone=zone)
             payload = {"hostId": host_id[sh[0]], "exportPoint": sh[1], "shareType": share_type}
-#            print payload
+#            print (payload)
             try:
                 share_id = rubrik.post('internal', '/host/share', payload, timeout=time_out)['id']
             except rubrik_cdm.exceptions.APICallException as e:
@@ -334,9 +337,9 @@ if __name__ == "__main__":
                     payload = {"managedIds": [ new_fs_id ]}
                     sla_out = rubrik.post('internal', endpoint, payload, timeout=time_out)
     if skipped_shares:
-        print "\nSkipped Shares:"
+        print ("\nSkipped Shares:")
         for skipped in skipped_shares:
-            print skipped
+            print (skipped)
 
 
 
