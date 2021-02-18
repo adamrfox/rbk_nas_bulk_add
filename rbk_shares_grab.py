@@ -21,7 +21,7 @@ def usage():
 
 def python_input(message):
     if int(sys.version[0]) > 2:
-        value = imput(message)
+        value = input(message)
     else:
         value = raw_input(message)
     return(value)
