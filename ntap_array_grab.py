@@ -214,7 +214,8 @@ if __name__ == "__main__":
 
     if outfile:
         fp = open (outfile, "w")
-    print ("SHARE_LIST: " + str(share_list))
+    if DEBUG:
+        print ("SHARE_LIST: " + str(share_list))
     for host in share_list.keys():
         for share in share_list[host]:
             if share is None:
