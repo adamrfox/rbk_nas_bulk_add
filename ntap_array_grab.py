@@ -196,6 +196,11 @@ if __name__ == "__main__":
             user = raw_input("User: ")
     if password == "":
         password = getpass.getpass("Password: ")
+    while protocol != "nfs" and protocol != "smb" and protocol != "cifs":
+        if int(sys.version[0]) > 2:
+            protocol = input ("Protocol [nfs|smb|cifs]: ")
+        else:
+            protocol = raw_input("Protocol [nfs|smb|cifs]: ")
 
     if DEBUG:
         print ("User: " + user)
