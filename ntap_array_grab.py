@@ -22,6 +22,10 @@ def usage():
     sys.stderr.write("hostname : Specify the hostname of the array.  [Isilon: System Zone] [NetApp: Cluster Management\n")
     exit(0)
 
+def dprint(message):
+    if DEBUG:
+        print(message + "\n")
+
 def ntap_set_err_check(out):
     if(out and (out.results_errno() != 0)) :
         r = out.results_reason()
@@ -99,6 +103,7 @@ def ntap_get_share_list(host, user, password, protocol, interface, do_svms):
         junct_point = {}
         if do_svms and svm not in do_svms:
             continue
+        dprint("SVM = " + svm)
         out = netapp.set_vserver(svm)
         if protocol == "nfs":
             result = netapp.invoke('volume-get-iter')
@@ -122,10 +127,24 @@ def ntap_get_share_list(host, user, password, protocol, interface, do_svms):
                 if vol_j != "/":
                     svm_share_list.append(vol_j)
         elif protocol == "cifs" or protocol == "smb":
-            result = netapp.invoke('cifs-share-get-iter')
+            api = NaElement("cifs-share-get-iter")
+            xi = NaElement("desired-attributes")
+            api.child_add(xi)
+            xi1 = NaElement("cifs-share")
+            xi1.child_add_string("vserver", "")
+            xi1.child_add_string("path", "")
+            xi.child_add(xi1)
+            api.child_add_string('max-records', 5000)
+            result = netapp.invoke_elem(api)
             ntap_invoke_err_check(result)
-            attr = result.child_get('attributes-list').children_get()
+            try:
+                attr = result.child_get('attributes-list').children_get()
+            except:
+                continue
             for sh in attr:
+                sh_svm = sh.child_get_string('vserver')
+                if sh_svm != svm:
+                    continue
                 path = sh.child_get_string('path')
                 if path == "/":                                 # Exclude root volumes
                     continue
@@ -201,10 +220,6 @@ if __name__ == "__main__":
             protocol = input ("Protocol [nfs|smb|cifs]: ")
         else:
             protocol = raw_input("Protocol [nfs|smb|cifs]: ")
-
-    if DEBUG:
-        print ("User: " + user)
-        print ("Password: " + password)
 
 # Generate a list of shares based on the APIs for each array
 
