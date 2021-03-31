@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from __future__ import print_function
 
 import sys
 import subprocess
@@ -28,7 +29,7 @@ if __name__ == "__main__":
         fp = open(outfile, "a")
     for x in export_list:
         if not outfile:
-            print nfs_server + ":" + x
+            print (nfs_server + ":" + x)
         else:
             fp.write(nfs_server + ":" + x + "\n")
     if outfile:
