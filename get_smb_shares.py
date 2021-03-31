@@ -5,6 +5,7 @@
 #
 # Note: Must be run on Windows as the library to do this isn't available for UNIX
 #
+from __future__ import print_function
 
 import win32net
 import win32netcon
@@ -34,7 +35,7 @@ while 1:
   
   for share in shares:
     if not outfile:
-      print COMPUTER_NAME + ":" + share['netname']
+      print(COMPUTER_NAME + ":" + share['netname'])
     else:
       fp.write(COMPUTER_NAME + ":" + share['netname'] + "\n")
   if not resume:
