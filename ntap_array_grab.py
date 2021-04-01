@@ -120,6 +120,10 @@ def ntap_get_share_list(host, user, password, protocol, interface, do_svms):
             for qt in qt_attrs:
                 volume = qt.child_get_string('volume')
                 qtree = qt.child_get_string('qtree')
+                dprint("VOL= " + volume)
+                dprint("QTREE= " + qtree)
+                dprint("JUNCT_P= " + junct_point[volume])
+                dprint("JUNCT = " + str(junct_point))
                 if qtree == "":
                     vol_j = junct_point[volume]
                 else:
