@@ -114,6 +114,7 @@ def ntap_get_share_list(host, user, password, protocol, interface, do_svms):
                 volume = vid_attrs.child_get_string('name')
                 junction = vid_attrs.child_get_string('junction-path')
                 junct_point[volume] = junction
+            dprint("JP = " + str(junct_point))
             result = netapp.invoke('qtree-list-iter')
             ntap_invoke_err_check(result)
             qt_attrs = result.child_get('attributes-list').children_get()
@@ -122,10 +123,16 @@ def ntap_get_share_list(host, user, password, protocol, interface, do_svms):
                 qtree = qt.child_get_string('qtree')
                 dprint("VOL= " + volume)
                 dprint("QTREE= " + qtree)
-                dprint("JUNCT_P= " + junct_point[volume])
+                try:
+                    dprint("JUNCT_P= " + junct_point[volume])
+                except:
+                    dprint("No Junction Point found")
                 dprint("JUNCT = " + str(junct_point))
                 if qtree == "":
-                    vol_j = junct_point[volume]
+                    try:
+                        vol_j = junct_point[volume]
+                    except:
+                        continue
                 else:
                     vol_j = junct_point[volume] + "/" + qtree
                 if vol_j != "/":
