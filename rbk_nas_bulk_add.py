@@ -138,6 +138,7 @@ if __name__ == "__main__":
     if password == "":
         password = getpass.getpass("Password: ")
 # Read the input file
+    print("Input file: " + file)
     with open(file) as fp:
         line = fp.readline()
         while line:
