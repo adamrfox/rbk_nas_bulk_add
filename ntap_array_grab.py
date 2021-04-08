@@ -97,7 +97,7 @@ def ntap_get_share_list(host, user, password, protocol, interface, do_svms):
                     hostname[svm] = addr
 
 # For each SVM, grab the NFS exports of SMB shares.  Generate the share_list structure for main()
-
+    dprint("HOSTNAME_ARRAY: " + str(hostname))
     for svm in svm_list:
         svm_share_list = []
         junct_point = {}
